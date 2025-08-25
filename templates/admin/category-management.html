@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DigiMenu - Category Management</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-gray-50 flex flex-col min-h-screen">
+<main class="flex-grow">
+
+  <!-- Navbar (reuse from dashboard) -->
+  <nav class="bg-white shadow-md fixed w-full top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center h-16">
+        <!-- Left -->
+        <div class="flex items-center space-x-4">
+          <a href="dashboard.html" class="flex items-center text-gray-700 hover:text-orange-600 font-semibold">
+            <i class="fas fa-home mr-2"></i> Home
+          </a>
+          <button onclick="window.history.back()" class="flex items-center text-gray-700 hover:text-orange-600 font-semibold">
+            <i class="fas fa-arrow-left mr-2"></i> Back
+          </button>
+        </div>
+        <!-- Right -->
+        <div class="flex items-center space-x-6">
+          <a href="logout.html" class="bg-red-500 text-white px-4 py-2 rounded-md font-semibold hover:bg-red-600 transition">
+            <i class="fas fa-sign-out-alt mr-1"></i> Logout
+          </a>
+          <div class="relative">
+            <button id="profileBtn" class="focus:outline-none">
+              <img id="profileImage" src="default-avatar.png" alt="Profile" class="h-10 w-10 rounded-full border border-gray-300 object-cover">
+            </button>
+            <div id="profileDropdown" class="hidden absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-lg">
+              <div class="p-4 text-center">
+                <p class="text-sm font-semibold text-gray-700 mb-2">Upload Profile Picture</p>
+                <input type="file" id="uploadInput" class="hidden" accept="image/*" onchange="previewImage(event)">
+                <button onclick="document.getElementById('uploadInput').click()" class="bg-orange-600 text-white px-3 py-2 rounded-lg hover:bg-orange-700">
+                  <i class="fas fa-upload mr-1"></i> Choose File
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Analytics Cards Section -->
+  <div class="max-w-7xl mx-auto pt-24 px-6">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div class="bg-white rounded-xl p-5 shadow hover:shadow-lg transition">
+        <i class="fas fa-utensils text-orange-600 text-2xl mb-2"></i>
+        <h3 class="text-lg font-bold">Menu Items</h3>
+        <p class="text-gray-600 text-sm">56 Dishes</p>
+      </div>
+      <div class="bg-white rounded-xl p-5 shadow hover:shadow-lg transition">
+        <i class="fas fa-layer-group text-orange-600 text-2xl mb-2"></i>
+        <h3 class="text-lg font-bold">Categories</h3>
+        <p class="text-gray-600 text-sm">7 Active</p>
+      </div>
+      <div class="bg-white rounded-xl p-5 shadow hover:shadow-lg transition">
+        <i class="fas fa-star text-orange-600 text-2xl mb-2"></i>
+        <h3 class="text-lg font-bold">Reviews</h3>
+        <p class="text-gray-600 text-sm">128 Ratings</p>
+      </div>
+      <div class="bg-white rounded-xl p-5 shadow hover:shadow-lg transition">
+        <i class="fas fa-fire text-orange-600 text-2xl mb-2"></i>
+        <h3 class="text-lg font-bold">Today’s Specials</h3>
+        <p class="text-gray-600 text-sm">4 Featured</p>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Main Content -->
+  <div class="max-w-7xl mx-auto pt-24 pb-16 px-6">
+    <h2 class="text-2xl font-bold text-gray-800 mb-8">Category Management</h2>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      
+      <!-- Category Form -->
+      <div class="bg-white p-6 rounded-xl shadow-lg">
+        <h3 class="text-xl font-semibold text-gray-700 mb-4 flex items-center">
+          <i class="fas fa-plus-circle text-orange-600 mr-2"></i> Create New Category
+        </h3>
+        <form action="#" method="POST" class="space-y-4">
+          <div>
+            <label for="categoryName" class="block text-sm font-medium text-gray-700">Category Name</label>
+            <input type="text" id="categoryName" name="categoryName" placeholder="e.g., Beverages" 
+              class="mt-1 w-full border-gray-300 rounded-lg shadow-sm focus:ring-orange-500 focus:border-orange-500 px-3 py-2">
+          </div>
+          <div>
+            <label for="categoryDescription" class="block text-sm font-medium text-gray-700">Description</label>
+            <textarea id="categoryDescription" name="categoryDescription" rows="3" placeholder="Short description..."
+              class="mt-1 w-full border-gray-300 rounded-lg shadow-sm focus:ring-orange-500 focus:border-orange-500 px-3 py-2"></textarea>
+          </div>
+          <div class="space-y-3">
+            <!-- Save/Update Button -->
+            <button type="submit" id="saveBtn"
+              class="w-full bg-orange-600 text-white py-2 rounded-lg font-semibold hover:bg-orange-700 transition">
+              <i class="fas fa-save mr-1"></i> Save Category
+            </button>
+
+            <!-- Cancel Button (hidden by default) -->
+            <button type="button" id="cancelBtn"
+              class="w-full bg-gray-300 text-gray-800 py-2 rounded-lg font-semibold hover:bg-gray-400 transition hidden"
+              onclick="cancelEdit()">
+              <i class="fas fa-times mr-1"></i> Cancel
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Available Categories -->
+      <div class="bg-white p-6 rounded-xl shadow-lg">
+        <h3 class="text-xl font-semibold text-gray-700 mb-4 flex items-center">
+          <i class="fas fa-list text-orange-600 mr-2"></i> Available Categories
+        </h3>
+        <ul class="divide-y divide-gray-200 max-h-96 overflow-y-auto" id="categoryList">
+          <li class="py-3 flex justify-between items-center">
+            <div>
+              <span class="font-medium text-gray-800">Appetizers</span>
+              <span class="text-sm text-gray-500 ml-2">10 items</span>
+            </div>
+            <div class="flex space-x-3">
+              <button class="text-blue-600 hover:text-blue-800" onclick="editCategory('Appetizers','Starters and snacks')">
+                <i class="fas fa-edit"></i>
+              </button>
+              <button class="text-red-600 hover:text-red-800" onclick="deleteCategory('Appetizers')">
+              <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          </li>
+      </div>
+    </div>
+  </div>
+</main>
+
+  <!-- Footer -->
+  <footer class="bg-gray-900 text-white py-6 mt-auto">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <p class="text-gray-400">&copy; 2024 DigiMenu. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <!-- Script for Profile Dropdown -->
+  <script>
+    const profileBtn = document.getElementById("profileBtn");
+    const profileDropdown = document.getElementById("profileDropdown");
+
+    profileBtn.addEventListener("click", () => {
+      profileDropdown.classList.toggle("hidden");
+    });
+
+    function previewImage(event) {
+      const reader = new FileReader();
+      reader.onload = function () {
+        document.getElementById("profileImage").src = reader.result;
+      };
+      reader.readAsDataURL(event.target.files[0]);
+    }
+
+
+
+let editMode = false;
+let editingCategory = null;
+
+function editCategory(name, description) {
+  // Fill form fields with existing category data
+  document.getElementById("categoryName").value = name;
+  document.getElementById("categoryDescription").value = description;
+
+  // Switch form to "edit mode"
+  editMode = true;
+  editingCategory = name;
+
+  const saveBtn = document.getElementById("saveBtn");
+  saveBtn.innerHTML = '<i class="fas fa-save mr-1"></i> Update Category';
+  saveBtn.classList.remove("bg-orange-600","hover:bg-orange-700");
+  saveBtn.classList.add("bg-blue-600","hover:bg-blue-700");
+
+  // Show cancel button
+  document.getElementById("cancelBtn").classList.remove("hidden");
+}
+
+function deleteCategory(name) {
+  if (confirm(`Are you sure you want to delete "${name}" category?`)) {
+    // Later: Call Django backend with AJAX
+    alert(`"${name}" deleted (demo only)`);
+  }
+}
+
+// Reset form after submit (demo only)
+document.querySelector("form").addEventListener("submit", function(e) {
+  e.preventDefault();
+  const name = document.getElementById("categoryName").value;
+  const description = document.getElementById("categoryDescription").value;
+
+  if (editMode) {
+    alert(`Updated category: ${editingCategory} → ${name} (${description})`);
+    editMode = false;
+    editingCategory = null;
+    document.getElementById("saveBtn").innerHTML = '<i class="fas fa-save mr-1"></i> Save Category';
+    document.getElementById("saveBtn").classList.remove("bg-blue-600","hover:bg-blue-700");
+    document.getElementById("saveBtn").classList.add("bg-orange-600","hover:bg-orange-700");
+  } else {
+    alert(`New category saved: ${name} (${description})`);
+  }
+
+  // Reset form fields
+  this.reset();
+});
+
+
+function cancelEdit() {
+  // Reset edit mode
+  editMode = false;
+  editingCategory = null;
+
+  // Clear form fields
+  document.getElementById("categoryName").value = "";
+  document.getElementById("categoryDescription").value = "";
+
+  // Reset save button
+  const saveBtn = document.getElementById("saveBtn");
+  saveBtn.innerHTML = '<i class="fas fa-save mr-1"></i> Save Category';
+  saveBtn.classList.remove("bg-blue-600","hover:bg-blue-700");
+  saveBtn.classList.add("bg-orange-600","hover:bg-orange-700");
+
+  // Hide cancel button
+  document.getElementById("cancelBtn").classList.add("hidden");
+}
+
+  </script>
+</body>
+</html>
