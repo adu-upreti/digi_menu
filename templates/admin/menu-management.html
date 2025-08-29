@@ -73,105 +73,108 @@
     </div>
     </div>
 
-        <!-- Main Content -->
-        <div class="max-w-7xl mx-auto pt-24 pb-16 px-6">
-    <h2 class="text-2xl font-bold text-gray-800 mb-8">Menu Management</h2>
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto pt-24 pb-16 px-6">
+        <h2 class="text-2xl font-bold text-gray-800 mb-8">Menu Management</h2>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
-            <!-- Menu Form -->
-            <div class="bg-white p-6 rounded-xl shadow-lg">
-        <h3 class="text-xl font-semibold text-gray-700 mb-4 flex items-center">
-                <i class="fas fa-plus-circle text-orange-600 mr-2"></i> Add New Dish
-        </h3>
-        <form id="menuForm" class="space-y-4">
-
-                <div>
-            <label for="foodName" class="block text-sm font-medium text-gray-700">Food Name</label>
-            <input type="text" id="foodName" name="foodName" placeholder="e.g., Chicken Burger"
-                    class="mt-1 w-full border-gray-300 rounded-lg shadow-sm focus:ring-orange-500 focus:border-orange-500 px-3 py-2">
-            </div>
+        <!-- Menu Form -->
+        <div class="bg-white p-6 rounded-xl shadow-lg">
+            <h3 class="text-xl font-semibold text-gray-700 mb-4 flex items-center">
+            <i class="fas fa-plus-circle text-orange-600 mr-2"></i> Add New Dish
+            </h3>
+            <form method="POST" enctype="multipart/form-data" class="space-y-4">
+            {% csrf_token %}
+            <input type="hidden" id="item_id" name="item_id" value="">
 
             <div>
-            <label for="foodCategory" class="block text-sm font-medium text-gray-700">Category</label>
-            <select id="foodCategory" name="foodCategory"
-                class="mt-1 w-full border-gray-300 rounded-lg shadow-sm focus:ring-orange-500 focus:border-orange-500 px-3 py-2">
-                <option>Appetizers</option>
-                <option>Beverages</option>
-                <option>Main Course</option>
-                <option>Desserts</option>
-            </select>
-            </div>
-
-            <div>
-            <label for="foodPrice" class="block text-sm font-medium text-gray-700">Price</label>
-            <input type="number" id="foodPrice" name="foodPrice" placeholder="e.g., 250"
+                <label for="itemName" class="block text-sm font-medium text-gray-700">Food Name</label>
+                <input type="text" id="itemName" name="itemName" placeholder="e.g., Chicken Burger" required
                 class="mt-1 w-full border-gray-300 rounded-lg shadow-sm focus:ring-orange-500 focus:border-orange-500 px-3 py-2">
             </div>
 
             <div>
-            <label for="foodDescription" class="block text-sm font-medium text-gray-700">Description</label>
-            <textarea id="foodDescription" name="foodDescription" rows="3" placeholder="Short description..."
+                <label for="itemCategory" class="block text-sm font-medium text-gray-700">Category</label>
+                <select id="itemCategory" name="itemCategory"
+                class="mt-1 w-full border-gray-300 rounded-lg shadow-sm focus:ring-orange-500 focus:border-orange-500 px-3 py-2">
+                <option value="">-- Select Category --</option>
+                {% for category in categories %}
+                    <option value="{{ category.id }}">{{ category.name }}</option>
+                {% endfor %}
+                </select>
+            </div>
+
+            <div>
+                <label for="itemPrice" class="block text-sm font-medium text-gray-700">Price</label>
+                <input type="number" id="itemPrice" name="itemPrice" placeholder="e.g., 250" step="0.01" min="0" required
+                class="mt-1 w-full border-gray-300 rounded-lg shadow-sm focus:ring-orange-500 focus:border-orange-500 px-3 py-2">
+            </div>
+
+            <div>
+                <label for="itemDescription" class="block text-sm font-medium text-gray-700">Description</label>
+                <textarea id="itemDescription" name="itemDescription" rows="3" placeholder="Short description..."
                 class="mt-1 w-full border-gray-300 rounded-lg shadow-sm focus:ring-orange-500 focus:border-orange-500 px-3 py-2"></textarea>
             </div>
 
             <div>
-            <label for="foodImage" class="block text-sm font-medium text-gray-700">Image</label>
-            <input type="file" id="foodImage" name="foodImage" accept="image/*"
+                <label for="itemImage" class="block text-sm font-medium text-gray-700">Image</label>
+                <input type="file" id="itemImage" name="itemImage" accept="image/*"
                 class="mt-1 w-full text-sm text-gray-700">
             </div>
 
             <button type="submit" id="saveBtn"
-            class="w-full bg-orange-600 text-white py-2 rounded-lg font-semibold hover:bg-orange-700 transition">
-            <i class="fas fa-save mr-1"></i> Save Dish
+                class="w-full bg-orange-600 text-white py-2 rounded-lg font-semibold hover:bg-orange-700 transition">
+                <i class="fas fa-save mr-1"></i> Save Dish
             </button>
             <button type="button" id="cancelBtn"
-            class="w-full bg-gray-300 text-gray-800 py-2 rounded-lg font-semibold hover:bg-gray-400 transition hidden"
-            onclick="cancelEdit()">
-            <i class="fas fa-times mr-1"></i> Cancel
+                class="w-full bg-gray-300 text-gray-800 py-2 rounded-lg font-semibold hover:bg-gray-400 transition hidden"
+                onclick="cancelEdit()">
+                <i class="fas fa-times mr-1"></i> Cancel
             </button>
-        </form>
+            </form>
         </div>
 
         <!-- Menu Items List -->
         <div class="bg-white p-6 rounded-xl shadow-lg">
-        <h3 class="text-xl font-semibold text-gray-700 mb-4 flex items-center">
+            <h3 class="text-xl font-semibold text-gray-700 mb-4 flex items-center">
             <i class="fas fa-list text-orange-600 mr-2"></i> Available Dishes
-        </h3>
-        <ul class="divide-y divide-gray-200 max-h-96 overflow-y-auto" id="menuList">
-            <!-- Example Dish -->
+            </h3>
+            <ul class="divide-y divide-gray-200 max-h-96 overflow-y-auto" id="menuList">
+            {% for item in menu_items %}
             <li class="py-3 flex justify-between items-center">
-            <div>
-                <span class="font-medium text-gray-800">Chicken Burger</span>
-                <span class="text-sm text-gray-500 ml-2">(Main Course - Rs. 250)</span>
-            </div>
-            <div class="flex space-x-3">
-                <button class="text-blue-600 hover:text-blue-800" onclick="editDish('Chicken Burger','Main Course',250,'Juicy grilled chicken with fresh veggies')">
-                <i class="fas fa-edit"></i>
-                </button>
-                <button class="text-red-600 hover:text-red-800" onclick="deleteDish('Chicken Burger')">
-                <i class="fas fa-trash"></i>
-                </button>
-            </div>
+                <div>
+                    <span class="font-medium text-gray-800">{{ item.name }}</span>
+                    <span class="text-sm text-gray-500 ml-2">
+                    ({% if item.category %}{{ item.category.name }}{% else %}No Category{% endif %} - Rs. {{ item.price }})
+                    </span>
+                </div>
+                <div class="flex space-x-3">
+                    <button class="text-blue-600 hover:text-blue-800 edit-item-btn" 
+                        data-item-id="{{ item.id }}"
+                        data-item-name="{{ item.name }}"
+                        data-item-category="{{ item.category.id|default:'' }}"
+                        data-item-price="{{ item.price }}"
+                        data-item-description="{{ item.description|default:'' }}">
+                    <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="text-red-600 hover:text-red-800 delete-item-btn" 
+                        data-item-id="{{ item.id }}"
+                        data-item-name="{{ item.name }}">
+                    <i class="fas fa-trash"></i>
+                    </button>
+                </div>
             </li>
-            <li class="py-3 flex justify-between items-center">
-            <div>
-                <span class="font-medium text-gray-800">Cold Coffee</span>
-                <span class="text-sm text-gray-500 ml-2">(Beverages - Rs. 120)</span>
-            </div>
-            <div class="flex space-x-3">
-                <button class="text-blue-600 hover:text-blue-800" onclick="editDish('Cold Coffee','Beverages',120,'Iced coffee with cream')">
-                <i class="fas fa-edit"></i>
-                </button>
-                <button class="text-red-600 hover:text-red-800" onclick="deleteDish('Cold Coffee')">
-                <i class="fas fa-trash"></i>
-                </button>
-            </div>
+            {% empty %}
+            <li class="py-3 text-center text-gray-500">
+                No menu items created yet. Add your first dish above!
             </li>
-        </ul>
+            {% endfor %}
+            </ul>
+        </div>
         </div>
     </div>
-    </div>
+
 
 </main>
 
@@ -182,79 +185,144 @@
     </div>
 </footer>
 
-<script>
-  // Profile Dropdown
+    <script>
+    // Profile Dropdown
     const profileBtn = document.getElementById("profileBtn");
     const profileDropdown = document.getElementById("profileDropdown");
-    profileBtn.addEventListener("click", () => {
-    profileDropdown.classList.toggle("hidden");
-    });
+    if (profileBtn && profileDropdown) {
+        profileBtn.addEventListener("click", () => {
+        profileDropdown.classList.toggle("hidden");
+        });
+    }
+
     function previewImage(event) {
-    const reader = new FileReader();
-    reader.onload = function () {
+        const reader = new FileReader();
+        reader.onload = function () {
         document.getElementById("profileImage").src = reader.result;
-    };
-    reader.readAsDataURL(event.target.files[0]);
+        };
+        reader.readAsDataURL(event.target.files[0]);
     }
 
-  // Menu Management Script
+    // Menu Management Script
     let editMode = false;
-    let editingDish = null;
+    let editingItemId = null;
 
-    function editDish(name, category, price, description) {
-    document.getElementById("foodName").value = name;
-    document.getElementById("foodCategory").value = category;
-    document.getElementById("foodPrice").value = price;
-    document.getElementById("foodDescription").value = description;
+    // Event delegation for edit and delete buttons
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.edit-item-btn')) {
+        const button = e.target.closest('.edit-item-btn');
+        const itemId = button.dataset.itemId;
+        const itemName = button.dataset.itemName;
+        const itemCategory = button.dataset.itemCategory;
+        const itemPrice = button.dataset.itemPrice;
+        const itemDescription = button.dataset.itemDescription;
 
-    editMode = true;
-    editingDish = name;
+        editItem(itemId, itemName, itemCategory, itemPrice, itemDescription);
+        }
 
-    const saveBtn = document.getElementById("saveBtn");
-    saveBtn.innerHTML = '<i class="fas fa-save mr-1"></i> Update Dish';
-    saveBtn.classList.remove("bg-orange-600","hover:bg-orange-700");
-    saveBtn.classList.add("bg-blue-600","hover:bg-blue-700");
+        if (e.target.closest('.delete-item-btn')) {
+        const button = e.target.closest('.delete-item-btn');
+        const itemId = button.dataset.itemId;
+        const itemName = button.dataset.itemName;
 
-    document.getElementById("cancelBtn").classList.remove("hidden");
-    }
-
-    function deleteDish(name) {
-    if (confirm(`Are you sure you want to delete "${name}"?`)) {
-        alert(`"${name}" deleted (demo only)`);
-    }
-    }
-
-    document.getElementById("menuForm").addEventListener("submit", function(e) {
-    e.preventDefault();
-    const name = document.getElementById("foodName").value;
-    const category = document.getElementById("foodCategory").value;
-    const price = document.getElementById("foodPrice").value;
-    const description = document.getElementById("foodDescription").value;
-
-    if (editMode) {
-        alert(`Updated dish: ${editingDish} → ${name} (${category}, Rs. ${price}, ${description})`);
-        editMode = false;
-        editingDish = null;
-        document.getElementById("saveBtn").innerHTML = '<i class="fas fa-save mr-1"></i> Save Dish';
-        document.getElementById("saveBtn").classList.remove("bg-blue-600","hover:bg-blue-700");
-        document.getElementById("saveBtn").classList.add("bg-orange-600","hover:bg-orange-700");
-    } else {
-        alert(`New dish saved: ${name} (${category}, Rs. ${price}, ${description})`);
-    }
-    this.reset();
-    document.getElementById("cancelBtn").classList.add("hidden");
+        deleteItem(itemId, itemName);
+        }
     });
+
+    function editItem(itemId, name, category, price, description) {
+      // Fill form fields with existing item data
+        document.getElementById("itemName").value = name;
+        document.getElementById("itemCategory").value = category;
+        document.getElementById("itemPrice").value = price;
+        document.getElementById("itemDescription").value = description;
+        document.getElementById("item_id").value = itemId;
+
+      // Switch form to "edit mode"
+        editMode = true;
+        editingItemId = itemId;
+
+        const saveBtn = document.getElementById("saveBtn");
+        saveBtn.innerHTML = '<i class="fas fa-save mr-1"></i> Update Dish';
+        saveBtn.classList.remove("bg-orange-600","hover:bg-orange-700");
+        saveBtn.classList.add("bg-blue-600","hover:bg-blue-700");
+
+      // Show cancel button
+        document.getElementById("cancelBtn").classList.remove("hidden");
+    
+      // Scroll to form
+        document.querySelector('.bg-white.p-6.rounded-xl.shadow-lg').scrollIntoView({ 
+        behavior: 'smooth' 
+        });
+    }
+
+    function deleteItem(itemId, itemName) {
+        if (confirm(`Are you sure you want to delete "${itemName}"?`)) {
+        // Show loading state
+        const deleteBtn = document.querySelector(`[data-item-id="${itemId}"].delete-item-btn`);
+        const originalContent = deleteBtn.innerHTML;
+        deleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        deleteBtn.disabled = true;
+
+        fetch('/delete-menu-item-ajax/', {
+            method: 'POST',
+            headers: {
+            'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+            'item_id': itemId
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+            alert(data.message);
+            // Remove the item from DOM instead of full page reload
+            deleteBtn.closest('li').remove();
+
+            // Update list if no items left
+            const menuList = document.getElementById('menuList');
+            if (menuList.children.length === 0) {
+                menuList.innerHTML = '<li class="py-3 text-center text-gray-500">No menu items created yet. Add your first dish above!</li>';
+            }
+            } else {
+            alert(data.message);
+            // Restore button state
+            deleteBtn.innerHTML = originalContent;
+            deleteBtn.disabled = false;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while deleting the menu item.');
+          // Restore button state
+            deleteBtn.innerHTML = originalContent;
+            deleteBtn.disabled = false;
+        });
+        }
+    }
 
     function cancelEdit() {
-    editMode = false;
-    editingDish = null;
-    document.getElementById("menuForm").reset();
-    const saveBtn = document.getElementById("saveBtn");
-    saveBtn.innerHTML = '<i class="fas fa-save mr-1"></i> Save Dish';
-    saveBtn.classList.remove("bg-blue-600","hover:bg-blue-700");
-    saveBtn.classList.add("bg-orange-600","hover:bg-orange-700");
-    document.getElementById("cancelBtn").classList.add("hidden");
+      // Reset edit mode
+        editMode = false;
+        editingItemId = null;
+
+      // Clear form fields
+        document.getElementById("itemName").value = "";
+        document.getElementById("itemCategory").value = "";
+        document.getElementById("itemPrice").value = "";
+        document.getElementById("itemDescription").value = "";
+        document.getElementById("item_id").value = "";
+        document.getElementById("itemImage").value = "";
+
+      // Reset save button
+        const saveBtn = document.getElementById("saveBtn");
+        saveBtn.innerHTML = '<i class="fas fa-save mr-1"></i> Save Dish';
+        saveBtn.classList.remove("bg-blue-600","hover:bg-blue-700");
+        saveBtn.classList.add("bg-orange-600","hover:bg-orange-700");
+
+      // Hide cancel button
+        document.getElementById("cancelBtn").classList.add("hidden");
     }
-</script>
+    </script>
 </body>
 </html>

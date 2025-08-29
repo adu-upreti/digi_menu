@@ -64,8 +64,12 @@
         <p class="text-white/80">Manage your restaurant smartly</p>
         </div>
         <div class="flex items-center space-x-3">
-        <img src="default-avatar.png" alt="Restaurant Logo" class="h-12 w-12 rounded-full border-2 border-white shadow">
-        <span class="font-semibold">Vrindavan Sweets</span>
+            {% if restaurant.logo %}
+                <img src="{{ restaurant.logo.url }}" alt="{{ restaurant.name }} Logo" class="h-12 w-12 rounded-full border-2 border-white shadow object-cover">
+            {% else %}
+                <img src="{% load static %}{% static 'images/default-avatar.png' %}" alt="Default Restaurant Logo" class="h-12 w-12 rounded-full border-2 border-white shadow object-cover">
+            {% endif %}
+            <span class="font-semibold">{{ restaurant.name }}</span>
         </div>
     </div>
     </div>
@@ -101,14 +105,14 @@
     <div class="mt-10">
         <h3 class="text-xl font-bold mb-4 text-gray-800">Quick Actions</h3>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <a href="menu-management.html" class="flex items-center justify-between bg-gray-50 p-5 rounded-xl shadow hover:bg-orange-50 transition">
+        <a href="{% url 'menu_management' %}" class="flex items-center justify-between bg-gray-50 p-5 rounded-xl shadow hover:bg-orange-50 transition">
             <div class="flex items-center">
             <i class="fas fa-utensils text-orange-600 mr-3 text-xl"></i>
             <span class="font-semibold">Menu Management</span>
             </div>
             <i class="fas fa-chevron-right text-gray-400"></i>
         </a>
-        <a href="category-management.html" class="flex items-center justify-between bg-gray-50 p-5 rounded-xl shadow hover:bg-orange-50 transition">
+        <a href="{% url 'category_management' %}" class="flex items-center justify-between bg-gray-50 p-5 rounded-xl shadow hover:bg-orange-50 transition">
             <div class="flex items-center">
             <i class="fas fa-layer-group text-orange-600 mr-3 text-xl"></i>
             <span class="font-semibold">Category Management</span>
@@ -136,7 +140,7 @@
             </div>
             <i class="fas fa-chevron-right text-gray-400"></i>
         </a>
-        <a href="reviews.html" class="flex items-center justify-between bg-gray-50 p-5 rounded-xl shadow hover:bg-orange-50 transition">
+        <a href="{% url 'reviews' %}" class="flex items-center justify-between bg-gray-50 p-5 rounded-xl shadow hover:bg-orange-50 transition">
             <div class="flex items-center">
             <i class="fas fa-star text-orange-600 mr-3 text-xl"></i>
             <span class="font-semibold">Customer Reviews</span>

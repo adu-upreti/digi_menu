@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Square Image Upload</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-md mx-auto bg-white rounded-lg shadow-md p-6">
+        <form id="imageForm">
+            <div class="mb-6">
+                <label for="foodImage" class="block text-sm font-medium text-gray-700 mb-2">Food Image</label>
+                
+                <!-- Preview Container -->
+                <div id="previewContainer" class="mb-4 hidden">
+                    <div class="w-48 h-48 mx-auto border-2 border-gray-300 rounded-lg overflow-hidden bg-gray-50">
+                        <img id="previewImage" class="w-full h-full object-cover" alt="Preview">
+                    </div>
+                    <p class="text-sm text-gray-600 mt-2 text-center">Preview (will be saved as 400x400 WebP)</p>
+                </div>
+
+                <!-- Upload Area -->
+                <div id="uploadArea" class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors cursor-pointer">
+                    <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                        <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <p class="mt-2 text-sm text-gray-600">
+                        <span class="font-medium text-indigo-600">Click to upload</span> or drag and drop
+                    </p>
+                    <p class="text-xs text-gray-500">PNG, JPG, GIF, WebP up to 10MB</p>
+                </div>
+
+                <input type="file" id="foodImage" name="foodImage" accept="image/*" class="hidden">
+                
+                <!-- Hidden input for processed image -->
+                <input type="hidden" id="processedImage" name="processedImage">
+                
+                <!-- Processing indicator -->
+                <div id="processingIndicator" class="hidden mt-4 text-center">
+                    <div class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg">
+                        <svg class="animate-spin -ml-1 mr-3 h-4 w-4 text-gray-700" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Processing image...
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="w-full bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-200 transition-colors">
+                Upload Image
+            </button>
+        </form>
+
+        <!-- Demo info -->
+        <div class="mt-6 p-4 bg-blue-50 rounded-lg">
+            <h3 class="text-sm font-medium text-blue-900 mb-2">How it works:</h3>
+            <ul class="text-xs text-blue-700 space-y-1">
+                <li>• Automatically crops to 1:1 square (400x400px)</li>
+                <li>• Centers the image during cropping</li>
+                <li>• Converts any format to WebP</li>
+                <li>• Compresses for optimal file size</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        class SquareImageUploader {
+            constructor() {
+                this.uploadArea = document.getElementById('uploadArea');
+                this.fileInput = document.getElementById('foodImage');
+                this.previewContainer = document.getElementById('previewContainer');
+                this.previewImage = document.getElementById('previewImage');
+                this.processedInput = document.getElementById('processedImage');
+                this.processingIndicator = document.getElementById('processingIndicator');
+                this.form = document.getElementById('imageForm');
+
+                this.initializeEventListeners();
+            }
+
+            initializeEventListeners() {
+                // Click to upload
+                this.uploadArea.addEventListener('click', () => {
+                    this.fileInput.click();
+                });
+
+                // Drag and drop
+                this.uploadArea.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    this.uploadArea.classList.add('border-indigo-500', 'bg-indigo-50');
+                });
+
+                this.uploadArea.addEventListener('dragleave', () => {
+                    this.uploadArea.classList.remove('border-indigo-500', 'bg-indigo-50');
+                });
+
+                this.uploadArea.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    this.uploadArea.classList.remove('border-indigo-500', 'bg-indigo-50');
+                    
+                    const files = e.dataTransfer.files;
+                    if (files.length > 0 && files[0].type.startsWith('image/')) {
+                        this.handleImageUpload(files[0]);
+                    }
+                });
+
+                // File input change
+                this.fileInput.addEventListener('change', (e) => {
+                    if (e.target.files.length > 0) {
+                        this.handleImageUpload(e.target.files[0]);
+                    }
+                });
+
+                // Form submission
+                this.form.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.handleFormSubmit();
+                });
+            }
+
+            async handleImageUpload(file) {
+                // Validate file
+                if (!file.type.startsWith('image/')) {
+                    alert('Please select a valid image file');
+                    return;
+                }
+
+                if (file.size > 10 * 1024 * 1024) { // 10MB limit
+                    alert('File size must be less than 10MB');
+                    return;
+                }
+
+                this.showProcessing(true);
+
+                try {
+                    const processedImageData = await this.processImage(file);
+                    this.showPreview(processedImageData);
+                    this.processedInput.value = processedImageData;
+                } catch (error) {
+                    console.error('Error processing image:', error);
+                    alert('Error processing image. Please try again.');
+                } finally {
+                    this.showProcessing(false);
+                }
+            }
+
+            async processImage(file) {
+                return new Promise((resolve) => {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    const img = new Image();
+
+                    img.onload = () => {
+                        // Set canvas size to desired square dimensions
+                        const targetSize = 400;
+                        canvas.width = targetSize;
+                        canvas.height = targetSize;
+
+                        // Calculate crop dimensions to maintain aspect ratio and center the image
+                        let sourceX = 0;
+                        let sourceY = 0;
+                        let sourceSize = Math.min(img.width, img.height);
+
+                        // Center the crop area
+                        if (img.width > img.height) {
+                            sourceX = (img.width - sourceSize) / 2;
+                        } else {
+                            sourceY = (img.height - sourceSize) / 2;
+                        }
+
+                        // Draw the cropped and resized image
+                        ctx.drawImage(
+                            img,
+                            sourceX, sourceY, sourceSize, sourceSize,  // source rectangle
+                            0, 0, targetSize, targetSize              // destination rectangle
+                        );
+
+                        // Convert to WebP with quality compression
+                        const webpData = canvas.toDataURL('image/webp', 0.85);
+                        resolve(webpData);
+                    };
+
+                    img.src = URL.createObjectURL(file);
+                });
+            }
+
+            showPreview(imageData) {
+                this.previewImage.src = imageData;
+                this.previewContainer.classList.remove('hidden');
+                this.uploadArea.classList.add('hidden');
+            }
+
+            showProcessing(show) {
+                if (show) {
+                    this.processingIndicator.classList.remove('hidden');
+                } else {
+                    this.processingIndicator.classList.add('hidden');
+                }
+            }
+
+            async handleFormSubmit() {
+                if (!this.processedInput.value) {
+                    alert('Please upload an image first');
+                    return;
+                }
+
+                // Here you would normally send the data to your server
+                // The processed image is available in this.processedInput.value as base64 WebP data
+
+                // For demo purposes, let's show the data info
+                const imageData = this.processedInput.value;
+                const sizeInBytes = Math.round((imageData.length * 3) / 4);
+                const sizeInKB = Math.round(sizeInBytes / 1024);
+
+                alert(`Image processed successfully!\n\nFormat: WebP\nSize: 400x400px\nFile size: ~${sizeInKB}KB\n\nReady to send to server!`);
+
+                // Example of how you'd send this to your Django backend:
+                /*
+                const formData = new FormData();
+                formData.append('processedImage', imageData);
+                
+                try {
+                    const response = await fetch('/upload-food-image/', {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                        }
+                    });
+                    
+                    if (response.ok) {
+                        console.log('Image uploaded successfully');
+                    }
+                } catch (error) {
+                    console.error('Upload error:', error);
+                }
+                */
+            }
+
+            // Method to reset the uploader
+            reset() {
+                this.previewContainer.classList.add('hidden');
+                this.uploadArea.classList.remove('hidden');
+                this.processedInput.value = '';
+                this.fileInput.value = '';
+            }
+        }
+
+        // Initialize the uploader when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new SquareImageUploader();
+        });
+    </script>
+</body>
+</html>
