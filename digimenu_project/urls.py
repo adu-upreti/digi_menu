@@ -8,6 +8,7 @@ urlpatterns = [
     path('', include('global.urls')),
     path('', include('admin_panel.urls')),
     path('menu/', include('menu.urls')),
+    path('', include('menu.public_urls')), 
 ]
 
 if settings.DEBUG:
