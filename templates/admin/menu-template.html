@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DigiMenu - Explore Menu</title>
+  <title>{{ restaurant.name }} - Menu | DigiMenu</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <style>
@@ -54,18 +54,22 @@
     <div class="flex items-center justify-between px-4 py-3 lg:px-8">
       <!-- Logo + Name -->
       <div class="flex items-center space-x-2">
-        <img src="logo.png" alt="Logo" class="h-8 w-8">
-        <h1 class="text-lg font-bold text-orange-600">DigiMenu</h1>
+        {% if restaurant.logo %}
+          <img src="{{ restaurant.logo.url }}" alt="{{ restaurant.name }} Logo" class="h-8 w-8 rounded-full object-cover">
+        {% else %}
+          <img src="https://via.placeholder.com/32x32/ea580c/ffffff?text=R" alt="Default Logo" class="h-8 w-8 rounded-full">
+        {% endif %}
+        <h1 class="text-lg font-bold text-orange-600">{{ restaurant.name }}</h1>
       </div>
 
       <!-- Search + Filter -->
       <div class="flex-1 flex items-center justify-center mx-4">
         <div class="relative w-4/5 md:w-2/3">
-          <input type="text" placeholder="Search food..."
+          <input type="text" id="searchInput" placeholder="Search food..."
             class="w-full border rounded-lg px-4 py-2 pl-10 focus:ring-orange-500 focus:border-orange-500 shadow-sm">
           <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
         </div>
-        <button onclick="toggleFilter()" class="ml-2 bg-orange-600 text-white px-3 py-2 rounded-lg hover:bg-orange-700">
+        <button type="button" id="filterToggleBtn" class="ml-2 bg-orange-600 text-white px-3 py-2 rounded-lg hover:bg-orange-700">
           <i class="fas fa-filter"></i>
         </button>
       </div>
@@ -75,19 +79,22 @@
   <!-- Category Filter Modal -->
   <div id="filterModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
     <div class="bg-white rounded-xl shadow-lg w-11/12 max-w-md p-6 relative">
-      <button onclick="toggleFilter()" class="absolute top-3 right-3 text-gray-500 hover:text-gray-700">
+      <button type="button" id="filterCloseBtn" class="absolute top-3 right-3 text-gray-500 hover:text-gray-700">
         <i class="fas fa-times text-xl"></i>
       </button>
       <h2 class="text-lg font-bold mb-4">Filter by Category</h2>
       <div class="space-y-3 max-h-60 overflow-y-auto">
-        <label class="flex items-center space-x-3"><input type="checkbox" class="form-checkbox text-orange-600"><span>Appetizers</span></label>
-        <label class="flex items-center space-x-3"><input type="checkbox" class="form-checkbox text-orange-600"><span>Main Course</span></label>
-        <label class="flex items-center space-x-3"><input type="checkbox" class="form-checkbox text-orange-600"><span>Desserts</span></label>
-        <label class="flex items-center space-x-3"><input type="checkbox" class="form-checkbox text-orange-600"><span>Beverages</span></label>
+        {% for category in categories %}
+          <label class="flex items-center space-x-3">
+            <input type="checkbox" class="form-checkbox text-orange-600 category-filter" 
+                   data-category="{{ category.name|slugify }}">
+            <span>{{ category.name }}</span>
+          </label>
+        {% endfor %}
       </div>
       <div class="mt-6 flex justify-between">
-        <button onclick="clearFilters()" class="bg-gray-200 px-4 py-2 rounded-lg hover:bg-gray-300">Clear</button>
-        <button onclick="applyFilters()" class="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700">Apply</button>
+        <button type="button" id="clearFiltersBtn" class="bg-gray-200 px-4 py-2 rounded-lg hover:bg-gray-300">Clear</button>
+        <button type="button" id="applyFiltersBtn" class="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700">Apply</button>
       </div>
     </div>
   </div>
@@ -99,60 +106,107 @@
     <div class="relative w-full max-w-7xl mx-auto mt-2">
       <div class="overflow-hidden rounded-xl relative">
         <div id="bannerWrapper" class="flex transition-transform duration-700 ease-in-out">
-          <img src="banner1.jpg" alt="Banner 1" class="w-full h-[200px] sm:h-[300px] lg:h-[500px] object-contain flex-shrink-0">
-          <img src="banner2.jpg" alt="Banner 2" class="w-full h-[200px] sm:h-[300px] lg:h-[500px] object-contain flex-shrink-0">
-          <img src="banner1.jpg" alt="Banner 3" class="w-full h-[200px] sm:h-[300px] lg:h-[500px] object-contain flex-shrink-0">
+          {% if featured_items %}
+            {% for item in featured_items %}
+              {% if item.image %}
+                <img src="{{ item.image.url }}" alt="{{ item.name }}" class="w-full h-[200px] sm:h-[300px] lg:h-[500px] object-cover flex-shrink-0">
+              {% endif %}
+            {% endfor %}
+          {% else %}
+            <!-- Default banner if no featured items -->
+            <div class="w-full h-[200px] sm:h-[300px] lg:h-[500px] bg-gradient-to-r from-orange-400 to-orange-600 flex items-center justify-center flex-shrink-0">
+              <div class="text-center text-white">
+                <h2 class="text-3xl font-bold mb-2">Welcome to {{ restaurant.name }}</h2>
+                <p class="text-lg">Discover our delicious menu</p>
+              </div>
+            </div>
+          {% endif %}
         </div>
 
         <!-- Navigation -->
-        <button onclick="prevSlide()" class="absolute top-1/2 left-3 -translate-y-1/2 bg-black/40 text-white p-2 rounded-full hover:bg-black/60">
-          <i class="fas fa-chevron-left"></i>
-        </button>
-        <button onclick="nextSlide()" class="absolute top-1/2 right-3 -translate-y-1/2 bg-black/40 text-white p-2 rounded-full hover:bg-black/60">
-          <i class="fas fa-chevron-right"></i>
-        </button>
+        {% if featured_items|length > 1 %}
+          <button type="button" id="prevSlideBtn" class="absolute top-1/2 left-3 -translate-y-1/2 bg-black/40 text-white p-2 rounded-full hover:bg-black/60">
+            <i class="fas fa-chevron-left"></i>
+          </button>
+          <button type="button" id="nextSlideBtn" class="absolute top-1/2 right-3 -translate-y-1/2 bg-black/40 text-white p-2 rounded-full hover:bg-black/60">
+            <i class="fas fa-chevron-right"></i>
+          </button>
+        {% endif %}
       </div>
     </div>
 
     <!-- Category Row -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
       <div id="categoryNav" class="flex items-center space-x-4 overflow-x-auto hide-scrollbar py-4 border-b border-gray-200 pl-4 bg-gray-100">
-      <button class="category-btn active" onclick="filterMenu(event, 'featured')">Featured</button>
-      <button class="category-btn" onclick="filterMenu(event, 'appetizers')">Appetizers</button>
-      <button class="category-btn" onclick="filterMenu(event, 'beverages')">Beverages</button>
-      <button class="category-btn" onclick="filterMenu(event, 'desserts')">Desserts</button>
-      <button class="category-btn" onclick="filterMenu(event, 'main-course')">Main Course</button>
+        <button type="button" class="category-btn active-category" data-category="all">All Items</button>
+        {% for category in categories %}
+          <button type="button" class="category-btn" data-category="{{ category.name|slugify }}">{{ category.name }}</button>
+        {% endfor %}
+        {% if featured_items %}
+          <button type="button" class="category-btn" data-category="featured">Featured</button>
+        {% endif %}
       </div>
     </div>
 
     <!-- Menu Grid -->
     <div class="max-w-7xl mx-auto px-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-4" id="menuGrid">
       
-      <div class="food-card bg-white rounded-xl shadow hover:shadow-lg transition p-4" data-category="appetizers">
-        <img src="dish1.jpg" alt="Dish" class="w-full h-32 object-cover rounded-lg cursor-pointer" onclick="showImage(this.src)">
-        <h3 class="font-bold text-gray-800 mt-3">Paneer Butter Masala</h3>
-        <p class="text-sm text-gray-600">Rich creamy curry with Indian spices.</p>
-        <div class="flex justify-between items-center mt-2">
-          <span class="font-semibold text-orange-600">Rs. 450</span>
-          <button class="bg-orange-600 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-orange-700"
-            onclick="addToCart('Paneer Butter Masala', 450)">
-            <i class="fas fa-plus"></i>
-          </button>
+      {% for item in menu_items %}
+        <div class="food-card bg-white rounded-xl shadow hover:shadow-lg transition p-4" 
+            data-category="{% if item.category %}{{ item.category.name|slugify }}{% else %}no-category{% endif %}"
+            data-featured="{{ item.is_featured|yesno:'true,false' }}"
+            data-name="{{ item.name|lower }}"
+            data-available="{{ item.is_available|yesno:'true,false' }}">
+          
+          {% if item.image %}
+            <img src="{{ item.image.url }}" alt="{{ item.name }}" 
+                class="w-full h-32 object-cover rounded-lg cursor-pointer image-preview" 
+                data-image-src="{{ item.image.url }}">
+          {% else %}
+            <div class="w-full h-32 bg-gray-200 rounded-lg flex items-center justify-center">
+              <i class="fas fa-utensils text-gray-400 text-2xl"></i>
+            </div>
+          {% endif %}
+          
+          <div class="mt-3">
+            <div class="flex items-center justify-between">
+              <h3 class="font-bold text-gray-800">{{ item.name }}</h3>
+              {% if item.is_featured %}
+                <span class="px-2 py-1 text-xs bg-yellow-100 text-yellow-800 rounded-full">Featured</span>
+              {% endif %}
+            </div>
+            
+            {% if item.description %}
+              <p class="text-sm text-gray-600 mt-1">{{ item.description|truncatechars:60 }}</p>
+            {% endif %}
+            
+            {% if not item.is_available %}
+              <p class="text-sm text-red-500 mt-1 font-medium">Currently Unavailable</p>
+            {% endif %}
+          </div>
+          
+          <div class="flex justify-between items-center mt-3">
+            <span class="font-semibold text-orange-600">Rs. {{ item.price }}</span>
+            {% if item.is_available %}
+              <button type="button" class="bg-orange-600 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-orange-700 add-to-cart-btn"
+                      data-item-name="{{ item.name }}" 
+                      data-item-price="{{ item.price }}">
+                <i class="fas fa-plus"></i>
+              </button>
+            {% else %}
+              <button type="button" class="bg-gray-400 text-white w-8 h-8 rounded-full flex items-center justify-center cursor-not-allowed" disabled>
+                <i class="fas fa-times"></i>
+              </button>
+            {% endif %}
+          </div>
         </div>
-      </div>
-
-      <div class="food-card bg-white rounded-xl shadow hover:shadow-lg transition p-4" data-category="desserts">
-        <img src="dish2.jpg" alt="Dish" class="w-full h-32 object-cover rounded-lg cursor-pointer" onclick="showImage(this.src)">
-        <h3 class="font-bold text-gray-800 mt-3">Veg Momos</h3>
-        <p class="text-sm text-gray-600">Steamed dumplings with spicy chutney.</p>
-        <div class="flex justify-between items-center mt-2">
-          <span class="font-semibold text-orange-600">Rs. 120</span>
-          <button class="bg-orange-600 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-orange-700"
-            onclick="addToCart('Veg Momos', 120)">
-            <i class="fas fa-plus"></i>
-          </button>
+      {% empty %}
+        <div class="col-span-full text-center py-12">
+          <i class="fas fa-utensils text-gray-300 text-6xl mb-4"></i>
+          <h3 class="text-xl font-semibold text-gray-600 mb-2">No Menu Items Yet</h3>
+          <p class="text-gray-500">{{ restaurant.name }} is still preparing their delicious menu. Please check back soon!</p>
         </div>
-      </div>
+      {% endfor %}
 
     </div>
   </main>
@@ -161,111 +215,282 @@
   <div id="imageModal" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
     <div class="relative">
       <img id="previewImg" src="" class="max-h-[80vh] rounded-lg shadow-lg">
-      <button onclick="closeImage()" class="absolute top-3 right-3 text-white text-2xl">
+      <button type="button" id="closeImageBtn" class="absolute top-3 right-3 text-white text-2xl">
         <i class="fas fa-times"></i>
       </button>
     </div>
   </div>
 
-  <script>
-    // =============================
-    // Banner Carousel
-    // =============================
-    const wrapper = document.getElementById("bannerWrapper");
-    const slides = wrapper ? wrapper.children : [];
-    const totalSlides = slides.length;
-    let currentSlide = 0;
+<script>
+// Wait for DOM to be fully loaded
+document.addEventListener('DOMContentLoaded', function() {
+  
+  // =============================
+  // Banner Carousel
+  // =============================
+  const wrapper = document.getElementById("bannerWrapper");
+  const slides = wrapper ? wrapper.children : [];
+  const totalSlides = slides.length;
+  let currentSlide = 0;
 
-    // Clone first for smooth loop
-    if (totalSlides > 0) {
-      const firstClone = slides[0].cloneNode(true);
-      wrapper.appendChild(firstClone);
-    }
+  // Clone first for smooth loop
+  if (totalSlides > 1) {
+    const firstClone = slides[0].cloneNode(true);
+    wrapper.appendChild(firstClone);
+  }
 
-    function nextSlide() {
-      currentSlide++;
-      wrapper.style.transition = "transform 0.6s ease";
-      wrapper.style.transform = `translateX(-${currentSlide * 100}%)`;
+  function nextSlide() {
+    if (totalSlides <= 1) return;
+    currentSlide++;
+    wrapper.style.transition = "transform 0.6s ease";
+    wrapper.style.transform = `translateX(-${currentSlide * 100}%)`;
 
-      if (currentSlide === totalSlides) {
-        setTimeout(() => {
-          wrapper.style.transition = "none";
-          wrapper.style.transform = "translateX(0)";
-          currentSlide = 0;
-        }, 600);
-      }
-    }
-
-    function prevSlide() {
-      if (currentSlide === 0) {
+    if (currentSlide === totalSlides) {
+      setTimeout(() => {
         wrapper.style.transition = "none";
-        wrapper.style.transform = `translateX(-${totalSlides * 100}%)`;
-        currentSlide = totalSlides - 1;
-        setTimeout(() => {
-          wrapper.style.transition = "transform 0.6s ease";
-          wrapper.style.transform = `translateX(-${currentSlide * 100}%)`;
-        });
-      } else {
-        currentSlide--;
+        wrapper.style.transform = "translateX(0)";
+        currentSlide = 0;
+      }, 600);
+    }
+  }
+
+  function prevSlide() {
+    if (totalSlides <= 1) return;
+    if (currentSlide === 0) {
+      wrapper.style.transition = "none";
+      wrapper.style.transform = `translateX(-${totalSlides * 100}%)`;
+      currentSlide = totalSlides - 1;
+      setTimeout(() => {
         wrapper.style.transition = "transform 0.6s ease";
         wrapper.style.transform = `translateX(-${currentSlide * 100}%)`;
-      }
-    }
-
-    if (totalSlides > 1) setInterval(nextSlide, 5000);
-
-    // =============================
-    // Filter Modal
-    // =============================
-    function toggleFilter() {
-      document.getElementById("filterModal").classList.toggle("hidden");
-    }
-    function clearFilters() { alert("Filters cleared"); }
-    function applyFilters() { alert("Filters applied"); }
-
-    // =============================
-    // Image Modal
-    // =============================
-    function showImage(src) {
-      document.getElementById("previewImg").src = src;
-      document.getElementById("imageModal").classList.remove("hidden");
-    }
-    function closeImage() {
-      document.getElementById("imageModal").classList.add("hidden");
-    }
-
-    // =============================
-    // Cart Function
-    // =============================
-    function addToCart(item, price) {
-      alert(item + " added to cart (Rs. " + price + ")");
-    }
-
-    // =============================
-    // Category Filter
-    // =============================
-    function filterMenu(event, category) {
-      // Remove active from all
-      document.querySelectorAll("#categoryNav .category-btn").forEach(btn => {
-        btn.classList.remove("active-category");
       });
+    } else {
+      currentSlide--;
+      wrapper.style.transition = "transform 0.6s ease";
+      wrapper.style.transform = `translateX(-${currentSlide * 100}%)`;
+    }
+  }
 
-      // Add active to clicked button
-      event.target.classList.add("active-category");
+  // Banner navigation event listeners
+  const nextBtn = document.getElementById('nextSlideBtn');
+  const prevBtn = document.getElementById('prevSlideBtn');
+  if (nextBtn) nextBtn.addEventListener('click', nextSlide);
+  if (prevBtn) prevBtn.addEventListener('click', prevSlide);
 
-      // Filter food cards
-      const items = document.querySelectorAll(".food-card");
-      items.forEach(item => {
-        if (category === "featured") {
-          item.style.display = Math.random() > 0.5 ? "block" : "none";
-        } else if (item.dataset.category === category) {
+  // Auto-slide if multiple slides
+  if (totalSlides > 1) setInterval(nextSlide, 5000);
+
+  // =============================
+  // Filter Modal
+  // =============================
+  const filterModal = document.getElementById('filterModal');
+  const filterToggleBtn = document.getElementById('filterToggleBtn');
+  const filterCloseBtn = document.getElementById('filterCloseBtn');
+  const clearFiltersBtn = document.getElementById('clearFiltersBtn');
+  const applyFiltersBtn = document.getElementById('applyFiltersBtn');
+
+  function toggleFilter() {
+    filterModal.classList.toggle('hidden');
+  }
+
+  function clearFilters() {
+    document.querySelectorAll('.category-filter').forEach(checkbox => {
+      checkbox.checked = false;
+    });
+    showAllItems();
+  }
+
+  function applyFilters() {
+    const selectedCategories = [];
+    document.querySelectorAll('.category-filter:checked').forEach(checkbox => {
+      selectedCategories.push(checkbox.dataset.category);
+    });
+    
+    const items = document.querySelectorAll(".food-card");
+    items.forEach(item => {
+      if (selectedCategories.length === 0 || selectedCategories.includes(item.dataset.category)) {
+        item.style.display = "block";
+      } else {
+        item.style.display = "none";
+      }
+    });
+    
+    toggleFilter();
+  }
+
+  // Filter modal event listeners
+  if (filterToggleBtn) filterToggleBtn.addEventListener('click', toggleFilter);
+  if (filterCloseBtn) filterCloseBtn.addEventListener('click', toggleFilter);
+  if (clearFiltersBtn) clearFiltersBtn.addEventListener('click', clearFilters);
+  if (applyFiltersBtn) applyFiltersBtn.addEventListener('click', applyFilters);
+
+  // =============================
+  // Search Function
+  // =============================
+  const searchInput = document.getElementById('searchInput');
+  
+  function searchMenu() {
+    const searchTerm = searchInput.value.toLowerCase();
+    const items = document.querySelectorAll(".food-card");
+    
+    items.forEach(item => {
+      const itemName = item.dataset.name;
+      if (itemName.includes(searchTerm)) {
+        item.style.display = "block";
+      } else {
+        item.style.display = "none";
+      }
+    });
+  }
+
+  if (searchInput) {
+    searchInput.addEventListener('keyup', searchMenu);
+  }
+
+  // =============================
+  // Category Navigation
+  // =============================
+  function filterByCategory(category) {
+    const items = document.querySelectorAll(".food-card");
+    
+    items.forEach(item => {
+      if (category === 'all') {
+        item.style.display = "block";
+      } else if (category === 'featured') {
+        if (item.dataset.featured === 'true') {
           item.style.display = "block";
         } else {
           item.style.display = "none";
         }
+      } else if (item.dataset.category === category) {
+        item.style.display = "block";
+      } else {
+        item.style.display = "none";
+      }
+    });
+  }
+
+  function showAllItems() {
+    const items = document.querySelectorAll(".food-card");
+    items.forEach(item => {
+      item.style.display = "block";
+    });
+  }
+
+  // Category button event delegation
+  document.addEventListener('click', function(e) {
+    // Handle category button clicks
+    if (e.target.classList.contains('category-btn')) {
+      // Remove active class from all category buttons
+      document.querySelectorAll('.category-btn').forEach(btn => {
+        btn.classList.remove('active-category');
       });
+      
+      // Add active class to clicked button
+      e.target.classList.add('active-category');
+      
+      // Filter items by category
+      const category = e.target.dataset.category;
+      filterByCategory(category);
     }
 
-  </script>
+    // Handle image preview clicks
+    if (e.target.classList.contains('image-preview')) {
+      const imageSrc = e.target.dataset.imageSrc;
+      showImage(imageSrc);
+    }
+
+    // Handle add to cart clicks
+    if (e.target.closest('.add-to-cart-btn')) {
+      const button = e.target.closest('.add-to-cart-btn');
+      const itemName = button.dataset.itemName;
+      const itemPrice = button.dataset.itemPrice;
+      addToCart(itemName, itemPrice);
+    }
+  });
+
+  // =============================
+  // Image Modal
+  // =============================
+  const imageModal = document.getElementById('imageModal');
+  const previewImg = document.getElementById('previewImg');
+  const closeImageBtn = document.getElementById('closeImageBtn');
+
+  function showImage(src) {
+    previewImg.src = src;
+    imageModal.classList.remove('hidden');
+  }
+
+  function closeImage() {
+    imageModal.classList.add('hidden');
+  }
+
+  if (closeImageBtn) {
+    closeImageBtn.addEventListener('click', closeImage);
+  }
+
+  // Close modal when clicking outside the image
+  imageModal.addEventListener('click', function(e) {
+    if (e.target === imageModal) {
+      closeImage();
+    }
+  });
+
+  // =============================
+  // Cart Function
+  // =============================
+  function addToCart(itemName, price) {
+    // You can implement actual cart functionality here
+    // For now, just show an alert
+    alert(`${itemName} added to cart (Rs. ${price})`);
+    
+    // Optional: Add visual feedback
+    const button = document.querySelector(`[data-item-name="${itemName}"]`);
+    if (button) {
+      const originalContent = button.innerHTML;
+      button.innerHTML = '<i class="fas fa-check"></i>';
+      button.classList.add('bg-green-600');
+      button.classList.remove('bg-orange-600');
+      
+      setTimeout(() => {
+        button.innerHTML = originalContent;
+        button.classList.remove('bg-green-600');
+        button.classList.add('bg-orange-600');
+      }, 1000);
+    }
+  }
+
+  // =============================
+  // Keyboard Navigation
+  // =============================
+  document.addEventListener('keydown', function(e) {
+    // Close modals with Escape key
+    if (e.key === 'Escape') {
+      if (!filterModal.classList.contains('hidden')) {
+        toggleFilter();
+      }
+      if (!imageModal.classList.contains('hidden')) {
+        closeImage();
+      }
+    }
+    
+    // Banner navigation with arrow keys
+    if (e.key === 'ArrowLeft') {
+      prevSlide();
+    }
+    if (e.key === 'ArrowRight') {
+      nextSlide();
+    }
+  });
+
+  // =============================
+  // Initialize
+  // =============================
+  // Show all items on page load
+  showAllItems();
+  
+  console.log('Menu template loaded successfully');
+});
+</script>
 </body>
 </html>

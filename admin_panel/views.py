@@ -242,3 +242,4 @@ def delete_category_ajax(request):
 
 def reviews(request):
     return render(request, 'admin/reviews.html')
+

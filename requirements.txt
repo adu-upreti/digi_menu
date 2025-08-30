@@ -1,5 +1,8 @@
 asgiref==3.7.2
 Django==3.2.25
+Pillow==9.5.0
+pypng==0.20220715.0
 pytz==2025.2
+qrcode==7.4.2
 sqlparse==0.4.4
 typing_extensions==4.7.1

@@ -1,4 +1,3 @@
-# digimenu_project/urls.py
 from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
@@ -8,7 +7,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('global.urls')),
     path('', include('admin_panel.urls')),
-    path('', include('menu.urls')),
+    path('menu/', include('menu.urls')),
 ]
 
 if settings.DEBUG:

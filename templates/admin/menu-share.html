@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DigiMenu - Menu Sharing</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-gray-50 flex flex-col min-h-screen">
+
+<main class="flex-grow">
+  <!-- Navbar (reuse from dashboard) -->
+  <nav class="bg-white shadow-md fixed w-full top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center h-16">
+        <!-- Left -->
+        <div class="flex items-center space-x-4">
+          <a href="{% url 'dashboard' %}" class="flex items-center text-gray-700 hover:text-orange-600 font-semibold">
+            <i class="fas fa-home mr-2"></i> Home
+          </a>
+          <button onclick="window.history.back()" class="flex items-center text-gray-700 hover:text-orange-600 font-semibold">
+            <i class="fas fa-arrow-left mr-2"></i> Back
+          </button>
+        </div>
+        <!-- Right -->
+        <div class="flex items-center space-x-6">
+          <a href="logout.html" class="bg-red-500 text-white px-4 py-2 rounded-md font-semibold hover:bg-red-600 transition">
+            <i class="fas fa-sign-out-alt mr-1"></i> Logout
+          </a>
+          <div class="relative">
+            <button id="profileBtn" class="focus:outline-none">
+              <img id="profileImage" src="default-avatar.png" alt="Profile" class="h-10 w-10 rounded-full border border-gray-300 object-cover">
+            </button>
+            <div id="profileDropdown" class="hidden absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-lg">
+              <div class="p-4 text-center">
+                <p class="text-sm font-semibold text-gray-700 mb-2">Upload Profile Picture</p>
+                <input type="file" id="uploadInput" class="hidden" accept="image/*" onchange="previewImage(event)">
+                <button onclick="document.getElementById('uploadInput').click()" class="bg-orange-600 text-white px-3 py-2 rounded-lg hover:bg-orange-700">
+                  <i class="fas fa-upload mr-1"></i> Choose File
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Analytics Cards Section -->
+  <div class="max-w-7xl mx-auto pt-24 px-6">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div class="bg-white rounded-xl p-5 shadow hover:shadow-lg transition">
+        <i class="fas fa-utensils text-orange-600 text-2xl mb-2"></i>
+        <h3 class="text-lg font-bold">Menu Items</h3>
+        <p class="text-gray-600 text-sm">56 Dishes</p>
+      </div>
+      <div class="bg-white rounded-xl p-5 shadow hover:shadow-lg transition">
+        <i class="fas fa-layer-group text-orange-600 text-2xl mb-2"></i>
+        <h3 class="text-lg font-bold">Categories</h3>
+        <p class="text-gray-600 text-sm">{{ total_categories }} Active</p>
+      </div>
+      <div class="bg-white rounded-xl p-5 shadow hover:shadow-lg transition">
+        <i class="fas fa-star text-orange-600 text-2xl mb-2"></i>
+        <h3 class="text-lg font-bold">Reviews</h3>
+        <p class="text-gray-600 text-sm">128 Ratings</p>
+      </div>
+      <div class="bg-white rounded-xl p-5 shadow hover:shadow-lg transition">
+        <i class="fas fa-fire text-orange-600 text-2xl mb-2"></i>
+        <h3 class="text-lg font-bold">Today's Specials</h3>
+        <p class="text-gray-600 text-sm">4 Featured</p>
+      </div>
+    </div>
+  </div>
+
+<!-- Menu Sharing Section -->
+<div class="max-w-7xl mx-auto px-6 py-8">
+  <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+    <!-- Header -->
+    <div class="bg-gradient-to-r from-orange-500 to-red-500 px-8 py-6">
+      <h2 class="text-3xl font-bold text-white flex items-center">
+        <i class="fas fa-share-alt mr-3"></i>
+        Share Your Digital Menu
+      </h2>
+      <p class="text-orange-100 mt-2">Share {{ restaurant.name }}'s digital menu with customers through multiple channels</p>
+    </div>
+
+    <div class="p-8">
+      <!-- Share Link Section -->
+      <div class="mb-8">
+        <h3 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+          <i class="fas fa-link text-orange-600 mr-2"></i>
+          Share Link
+        </h3>
+        <div class="bg-gray-50 rounded-lg p-4 border-2 border-dashed border-gray-200">
+          <div class="flex items-center justify-between bg-white rounded-lg border border-gray-200 px-4 py-3">
+            <input type="text" value="{{ menu_url }}" 
+                  class="flex-1 bg-transparent text-gray-700 font-mono text-sm focus:outline-none" 
+                  id="menuLink" readonly>
+            <button type="button" id="copyLinkBtn"
+                    class="ml-3 bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center">
+              <i class="fas fa-copy mr-2"></i>
+              <span id="copyText">Copy</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid lg:grid-cols-2 gap-8">
+        <!-- Social Share Options -->
+        <div>
+          <h3 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+            <i class="fas fa-share-nodes text-orange-600 mr-2"></i>
+            Social Media Sharing
+          </h3>
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+            <!-- Email -->
+            <button type="button" class="social-share-btn bg-gradient-to-br from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white p-4 rounded-2xl transition-all transform hover:scale-105 shadow-lg hover:shadow-xl flex flex-col items-center border border-blue-300"
+                    data-platform="email">
+              <div class="bg-white bg-opacity-20 p-3 rounded-full mb-2">
+                <i class="fas fa-envelope text-xl"></i>
+              </div>
+              <span class="font-medium text-sm">Email</span>
+            </button>
+            
+            <!-- WhatsApp -->
+            <button type="button" class="social-share-btn bg-gradient-to-br from-green-400 to-green-600 hover:from-green-500 hover:to-green-700 text-white p-4 rounded-2xl transition-all transform hover:scale-105 shadow-lg hover:shadow-xl flex flex-col items-center border border-green-300"
+                    data-platform="whatsapp">
+              <div class="bg-white bg-opacity-20 p-3 rounded-full mb-2">
+                <i class="fab fa-whatsapp text-xl"></i>
+              </div>
+              <span class="font-medium text-sm">WhatsApp</span>
+            </button>
+            
+            <!-- Facebook -->
+            <button type="button" class="social-share-btn bg-gradient-to-br from-blue-600 to-blue-800 hover:from-blue-700 hover:to-blue-900 text-white p-4 rounded-2xl transition-all transform hover:scale-105 shadow-lg hover:shadow-xl flex flex-col items-center border border-blue-400"
+                    data-platform="facebook">
+              <div class="bg-white bg-opacity-20 p-3 rounded-full mb-2">
+                <i class="fab fa-facebook-f text-xl"></i>
+              </div>
+              <span class="font-medium text-sm">Facebook</span>
+            </button>
+            
+            <!-- X (Twitter) -->
+            <button type="button" class="social-share-btn bg-gradient-to-br from-gray-800 to-black hover:from-gray-700 hover:to-gray-900 text-white p-4 rounded-2xl transition-all transform hover:scale-105 shadow-lg hover:shadow-xl flex flex-col items-center border border-gray-600"
+                    data-platform="twitter">
+              <div class="bg-white bg-opacity-20 p-3 rounded-full mb-2">
+                <i class="fab fa-x-twitter text-xl"></i>
+              </div>
+              <span class="font-medium text-sm">X (Twitter)</span>
+            </button>
+            
+            <!-- Messenger -->
+            <button type="button" class="social-share-btn bg-gradient-to-br from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white p-4 rounded-2xl transition-all transform hover:scale-105 shadow-lg hover:shadow-xl flex flex-col items-center border border-purple-300"
+                    data-platform="messenger">
+              <div class="bg-white bg-opacity-20 p-3 rounded-full mb-2">
+                <i class="fab fa-facebook-messenger text-xl"></i>
+              </div>
+              <span class="font-medium text-sm">Messenger</span>
+            </button>
+            
+            <!-- Instagram -->
+            <button type="button" class="social-share-btn bg-gradient-to-br from-pink-400 via-red-400 to-yellow-400 hover:from-pink-500 hover:via-red-500 hover:to-yellow-500 text-white p-4 rounded-2xl transition-all transform hover:scale-105 shadow-lg hover:shadow-xl flex flex-col items-center border border-pink-300"
+                    data-platform="instagram">
+              <div class="bg-white bg-opacity-20 p-3 rounded-full mb-2">
+                <i class="fab fa-instagram text-xl"></i>
+              </div>
+              <span class="font-medium text-sm">Instagram</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- QR Code Section -->
+        <div>
+          <h3 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+            <i class="fas fa-qrcode text-orange-600 mr-2"></i>
+            QR Code
+          </h3>
+          <div class="bg-white border-2 border-gray-200 rounded-xl p-6 text-center">
+            <!-- Dynamic QR Code -->
+            <div class="bg-gray-100 w-48 h-48 mx-auto rounded-lg flex items-center justify-center mb-4 border-2 border-dashed border-gray-300">
+              <img src="{% url 'menu:get_qr_code_image' %}" alt="QR Code for {{ restaurant.name }}" class="w-44 h-44 rounded-lg">
+            </div>
+            
+            <p class="text-gray-600 text-sm mb-4">Scan to access {{ restaurant.name }}'s menu</p>
+            
+            <!-- QR Code Action Button -->
+            <div class="flex justify-center">
+              <a href="{% url 'menu:generate_qr_code' %}" 
+                class="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-6 py-3 rounded-xl font-medium transition-all transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center"
+                download="{{ restaurant.slug }}-menu-qr.png">
+                <i class="fas fa-download mr-2"></i>
+                Download QR Code
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Usage Tips -->
+      <div class="mt-8 bg-blue-50 border border-blue-200 rounded-xl p-6">
+        <h4 class="font-semibold text-blue-800 mb-3 flex items-center">
+          <i class="fas fa-lightbulb mr-2"></i>
+          Sharing Tips for {{ restaurant.name }}
+        </h4>
+        <div class="grid md:grid-cols-2 gap-4 text-sm text-blue-700">
+          <div class="flex items-start">
+            <i class="fas fa-check-circle mt-1 mr-2 text-blue-600"></i>
+            <span>Print the QR code and place it on tables for contactless menu access</span>
+          </div>
+          <div class="flex items-start">
+            <i class="fas fa-check-circle mt-1 mr-2 text-blue-600"></i>
+            <span>Share the link on social media to reach more customers</span>
+          </div>
+          <div class="flex items-start">
+            <i class="fas fa-check-circle mt-1 mr-2 text-blue-600"></i>
+            <span>Include the menu link in email signatures and business cards</span>
+          </div>
+          <div class="flex items-start">
+            <i class="fas fa-check-circle mt-1 mr-2 text-blue-600"></i>
+            <span>Display the QR code at your restaurant entrance</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</main>
+
+<!-- Footer -->
+<footer class="bg-gray-900 text-white py-6 mt-auto">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+    <p class="text-gray-400">&copy; 2024 DigiMenu. All rights reserved.</p>
+  </div>
+</footer>
+
+<script>
+// Wait for DOM to be fully loaded
+document.addEventListener('DOMContentLoaded', function() {
+  
+  // =============================
+  // Profile Dropdown
+  // =============================
+  const profileBtn = document.getElementById('profileBtn');
+  const profileDropdown = document.getElementById('profileDropdown');
+  
+  if (profileBtn && profileDropdown) {
+    profileBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      profileDropdown.classList.toggle('hidden');
+    });
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(event) {
+      if (!profileBtn.contains(event.target)) {
+        profileDropdown.classList.add('hidden');
+      }
+    });
+  }
+
+  // =============================
+  // Copy to Clipboard
+  // =============================
+  const copyLinkBtn = document.getElementById('copyLinkBtn');
+  const menuLink = document.getElementById('menuLink');
+  const copyText = document.getElementById('copyText');
+
+  if (copyLinkBtn && menuLink && copyText) {
+    copyLinkBtn.addEventListener('click', function() {
+      // Select and copy the text
+      menuLink.select();
+      menuLink.setSelectionRange(0, 99999); // For mobile devices
+      
+      try {
+        navigator.clipboard.writeText(menuLink.value).then(function() {
+          // Success feedback
+          showCopySuccess();
+        }).catch(function() {
+          // Fallback for older browsers
+          document.execCommand('copy');
+          showCopySuccess();
+        });
+      } catch (err) {
+        // Final fallback
+        document.execCommand('copy');
+        showCopySuccess();
+      }
+    });
+
+    function showCopySuccess() {
+      const originalText = copyText.textContent;
+      const button = copyText.parentElement;
+      
+      // Change button appearance
+      copyText.textContent = 'Copied!';
+      button.classList.remove('bg-orange-600', 'hover:bg-orange-700');
+      button.classList.add('bg-green-600', 'hover:bg-green-700');
+      
+      // Reset after 2 seconds
+      setTimeout(() => {
+        copyText.textContent = originalText;
+        button.classList.remove('bg-green-600', 'hover:bg-green-700');
+        button.classList.add('bg-orange-600', 'hover:bg-orange-700');
+      }, 2000);
+    }
+  }
+
+  // =============================
+  // Social Media Sharing
+  // =============================
+  const socialShareButtons = document.querySelectorAll('.social-share-btn');
+  const menuUrl = document.getElementById('menuLink').value;
+  const restaurantName = '{{ restaurant.name|escapejs }}';
+
+  socialShareButtons.forEach(button => {
+    button.addEventListener('click', function() {
+      const platform = this.dataset.platform;
+      
+      // Visual feedback
+      this.style.transform = 'scale(0.95)';
+      setTimeout(() => {
+        this.style.transform = 'scale(1)';
+      }, 150);
+
+      // Handle different platforms
+      handleSocialShare(platform, menuUrl, restaurantName);
+    });
+  });
+
+  function handleSocialShare(platform, url, restaurantName) {
+    const shareText = `Check out ${restaurantName}'s digital menu!`;
+    const encodedUrl = encodeURIComponent(url);
+    const encodedText = encodeURIComponent(shareText);
+    
+    let shareUrl = '';
+
+    switch(platform) {
+      case 'whatsapp':
+        shareUrl = `https://wa.me/?text=${encodedText}%20${encodedUrl}`;
+        break;
+      case 'facebook':
+        shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`;
+        break;
+      case 'twitter':
+        shareUrl = `https://twitter.com/intent/tweet?text=${encodedText}&url=${encodedUrl}`;
+        break;
+      case 'email':
+        shareUrl = `mailto:?subject=${encodeURIComponent(`${restaurantName} Digital Menu`)}&body=${encodedText}%20${encodedUrl}`;
+        break;
+      case 'messenger':
+        shareUrl = `https://www.facebook.com/dialog/send?link=${encodedUrl}&app_id=YOUR_APP_ID`;
+        break;
+      case 'instagram':
+        // Instagram doesn't support direct URL sharing, so copy to clipboard
+        copyToClipboard(url);
+        showMessage('Link copied! You can paste it in your Instagram post or story.', 'info');
+        return;
+      default:
+        console.log(`Sharing to ${platform} - Platform not configured`);
+        return;
+    }
+
+    if (shareUrl) {
+      // Open share URL in new window
+      window.open(shareUrl, '_blank', 'width=600,height=400,scrollbars=yes,resizable=yes');
+    }
+  }
+
+  // =============================
+  // QR Code Download Tracking
+  // =============================
+  const qrDownloadBtn = document.querySelector('a[href*="generate_qr_code"]');
+  
+  if (qrDownloadBtn) {
+    qrDownloadBtn.addEventListener('click', function() {
+      // Visual feedback
+      const icon = this.querySelector('i');
+      const text = this.querySelector('span') || this;
+      
+      if (icon) {
+        icon.classList.remove('fa-download');
+        icon.classList.add('fa-spinner', 'fa-spin');
+      }
+      
+      // Reset after download starts
+      setTimeout(() => {
+        if (icon) {
+          icon.classList.remove('fa-spinner', 'fa-spin');
+          icon.classList.add('fa-download');
+        }
+        showMessage('QR Code downloaded successfully!', 'success');
+      }, 1000);
+    });
+  }
+
+  // =============================
+  // Profile Image Preview
+  // =============================
+  const uploadInput = document.getElementById('uploadInput');
+  const profileImage = document.getElementById('profileImage');
+
+  if (uploadInput && profileImage) {
+    uploadInput.addEventListener('change', function(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          profileImage.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+  }
+
+  // =============================
+  // Utility Functions
+  // =============================
+  function copyToClipboard(text) {
+    try {
+      navigator.clipboard.writeText(text);
+    } catch (err) {
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea');
+      textArea.value = text;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+    }
+  }
+
+  function showMessage(message, type = 'info') {
+    // Create message element
+    const messageDiv = document.createElement('div');
+    const bgColor = type === 'success' ? 'bg-green-500' : type === 'error' ? 'bg-red-500' : 'bg-blue-500';
+    
+    messageDiv.className = `fixed top-4 right-4 z-50 ${bgColor} text-white px-6 py-3 rounded-lg shadow-lg max-w-sm transform transition-all duration-300 translate-x-full`;
+    messageDiv.innerHTML = `
+      <div class="flex items-center justify-between">
+        <span class="text-sm font-medium">${message}</span>
+        <button onclick="this.parentElement.parentElement.remove()" class="ml-3 text-white hover:text-gray-200">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+    `;
+    
+    // Add to page
+    document.body.appendChild(messageDiv);
+    
+    // Animate in
+    setTimeout(() => {
+      messageDiv.classList.remove('translate-x-full');
+    }, 100);
+    
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+      messageDiv.classList.add('translate-x-full');
+      setTimeout(() => {
+        if (messageDiv.parentElement) {
+          messageDiv.remove();
+        }
+      }, 300);
+    }, 5000);
+  }
+
+  // =============================
+  // Keyboard Shortcuts
+  // =============================
+  document.addEventListener('keydown', function(e) {
+    // Ctrl+C or Cmd+C to copy menu link
+    if ((e.ctrlKey || e.metaKey) && e.key === 'c' && !e.target.matches('input, textarea')) {
+      e.preventDefault();
+      if (copyLinkBtn) {
+        copyLinkBtn.click();
+      }
+    }
+    
+    // Escape to close dropdowns
+    if (e.key === 'Escape') {
+      if (profileDropdown && !profileDropdown.classList.contains('hidden')) {
+        profileDropdown.classList.add('hidden');
+      }
+    }
+  });
+
+  // =============================
+  // Initialize
+  // =============================
+  console.log('Menu sharing page loaded successfully');
+  
+  // Show welcome message if first time
+  const isFirstVisit = !localStorage.getItem('menu_share_visited');
+  if (isFirstVisit) {
+    setTimeout(() => {
+      showMessage('Welcome! Your menu link and QR code are ready to share.', 'success');
+      localStorage.setItem('menu_share_visited', 'true');
+    }, 1000);
+  }
+});
+</script>
+</body>
+</html>
